@@ -15,7 +15,10 @@ body {
   font-family: "Inter", system-ui, sans-serif;
   background: radial-gradient(circle at 20% 0%, #203676 0%, transparent 35%), var(--bg);
   color: var(--text);
+  display: block;
+  text-decoration: none;
 }
+
 
 .phone-app {
   width: min(460px, 100vw);
@@ -73,7 +76,10 @@ input {
   padding: 0.58rem 0.65rem;
   background: #0f1b39;
   color: var(--text);
+  display: block;
+  text-decoration: none;
 }
+
 
 .primary,
 .ghost {
@@ -152,7 +158,10 @@ input {
   border-radius: 0.65rem;
   padding: 0.55rem;
   color: var(--text);
+  display: block;
+  text-decoration: none;
 }
+
 .result-btn span { color: var(--muted); font-size: 0.75rem; float: right; }
 
 button { cursor: pointer; transition: transform 180ms ease, background-color 220ms ease, border-color 220ms ease, opacity 220ms ease; }

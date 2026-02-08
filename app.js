@@ -57,7 +57,11 @@ const state = {
   ],
   currentMatch: null,
   compareExtra: null,
+  ipscIndex: null,
 };
+
+const IPSC_RESULTS_URL = 'https://www.ipsc.org/ipsc-match-results/';
+const CORS_PROXY_PREFIX = 'https://r.jina.ai/http://';
 
 const el = {
   searchInput: document.getElementById('searchInput'),
@@ -77,26 +81,76 @@ const tabs = document.querySelectorAll('.tab');
 const panels = document.querySelectorAll('.tab-panel');
 const navButtons = document.querySelectorAll('.bottom-nav button');
 
+function proxied(url) {
+  return `${CORS_PROXY_PREFIX}${url.replace(/^https?:\/\//, '')}`;
+}
+
+function normalizeName(value) {
+  return value.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 async function fetchRemoteProviders() {
-  // Browser-side CORS blocks many official endpoints; keep safe fallback.
-  const endpoints = [
-    'https://ipsc.org',
-    'https://uspsa.org',
-  ];
+  const providers = ['PractiScore'];
+  try {
+    const res = await fetch(proxied('https://www.ipsc.org/ipsc-match-results/'));
+    if (res.ok) providers.push('IPSC');
+  } catch {}
 
-  const online = await Promise.all(
-    endpoints.map(async (url) => {
-      try {
-        await fetch(url, { mode: 'no-cors' });
-        return url.includes('ipsc') ? 'IPSC' : 'USPSA';
-      } catch {
-        return null;
-      }
-    })
-  );
+  try {
+    const res = await fetch(proxied('https://uspsa.org/'));
+    if (res.ok) providers.push('USPSA');
+  } catch {}
 
-  const providers = ['PractiScore', ...online.filter(Boolean)];
   el.providerChip.textContent = `Providers: ${providers.join(' · ')}`;
+}
+
+async function loadIpscIndex() {
+  if (state.ipscIndex) return state.ipscIndex;
+
+  const response = await fetch(proxied(IPSC_RESULTS_URL));
+  if (!response.ok) throw new Error(`IPSC request failed (${response.status})`);
+  const markdown = await response.text();
+
+  const links = [];
+  const regex = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
+  let match;
+  while ((match = regex.exec(markdown))) {
+    const title = match[1].trim();
+    const url = match[2].trim();
+    const blockedTerms = ['facebook', 'instagram', 'twitter', 'contact', 'privacy', 'submit', 'donate'];
+    if (blockedTerms.some((t) => title.toLowerCase().includes(t))) continue;
+    if (!url.includes('ipsc.org') && !url.includes('ipscresults.org')) continue;
+    links.push({ title, url });
+  }
+
+  const uniq = [];
+  const seen = new Set();
+  for (const item of links) {
+    const key = `${item.title}|${item.url}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    uniq.push(item);
+  }
+
+  state.ipscIndex = uniq.slice(0, 80);
+  return state.ipscIndex;
+}
+
+async function searchIpscByCompetitor(query, candidates) {
+  const found = [];
+  const token = normalizeName(query);
+  const scanList = candidates.slice(0, 15);
+
+  for (const entry of scanList) {
+    try {
+      const res = await fetch(proxied(entry.url));
+      if (!res.ok) continue;
+      const text = normalizeName(await res.text());
+      if (text.includes(token)) found.push(entry);
+    } catch {}
+  }
+
+  return found;
 }
 
 function setMatch(match) {
@@ -122,9 +176,7 @@ function renderHeader() {
 function renderStages() {
   const m = state.currentMatch;
   el.stageList.innerHTML = m.stages
-    .map(
-      (s) => `<li class="${s.pct < 82 ? 'warn' : ''}"><div><strong>${s.name}</strong><p>${s.hits} · ${s.penalties}</p></div><span class="score">${s.pct}%</span></li>`
-    )
+    .map((s) => `<li class="${s.pct < 82 ? 'warn' : ''}"><div><strong>${s.name}</strong><p>${s.hits} · ${s.penalties}</p></div><span class="score">${s.pct}%</span></li>`)
     .join('');
 
   el.stageMetrics.innerHTML = `
@@ -136,17 +188,11 @@ function renderStages() {
 function renderCompare() {
   const list = [...state.currentMatch.competitors];
   if (state.compareExtra && !list.find((x) => x.name === state.compareExtra.name)) list.push(state.compareExtra);
-  el.compareStack.innerHTML = list
-    .map(
-      (c) => `<article class="${c.name === 'You' ? 'me' : ''}"><h4>${c.name}</h4><p>${c.overallPct}% · Avg place ${c.avgPlace}</p></article>`
-    )
-    .join('');
+  el.compareStack.innerHTML = list.map((c) => `<article class="${c.name === 'You' ? 'me' : ''}"><h4>${c.name}</h4><p>${c.overallPct}% · Avg place ${c.avgPlace}</p></article>`).join('');
 }
 
 function renderClassifications() {
-  el.classificationList.innerHTML = state.currentMatch.classifications
-    .map(([a, b]) => `<li><span>${a}</span><strong>${b}</strong></li>`)
-    .join('');
+  el.classificationList.innerHTML = state.currentMatch.classifications.map(([a, b]) => `<li><span>${a}</span><strong>${b}</strong></li>`).join('');
 }
 
 function render() {
@@ -156,22 +202,9 @@ function render() {
   renderClassifications();
 }
 
-function runSearch() {
-  const q = el.searchInput.value.trim().toLowerCase();
-  if (!q) return;
-
-  const matchHits = state.matches.filter((m) => m.name.toLowerCase().includes(q));
-  const shooterHits = state.matches.flatMap((m) =>
-    m.shooters.filter((s) => s.toLowerCase().includes(q)).map((s) => ({ shooter: s, match: m }))
-  );
-
-  const rows = [];
-  matchHits.forEach((m) => rows.push(`<button class="result-btn" data-match="${m.id}">📋 ${m.name} <span>${m.provider}</span></button>`));
-  shooterHits.forEach((x) => rows.push(`<button class="result-btn" data-match="${x.match.id}">🎯 ${x.shooter} <span>${x.match.name}</span></button>`));
-
+function renderSearchRows(rows) {
   el.searchResults.innerHTML = rows.length ? rows.join('') : '<p class="foot-note">No match or shooter found.</p>';
-
-  document.querySelectorAll('.result-btn').forEach((btn) => {
+  document.querySelectorAll('.result-btn[data-match]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const m = state.matches.find((x) => x.id === btn.dataset.match);
       if (m) setMatch(m);
@@ -179,18 +212,46 @@ function runSearch() {
   });
 }
 
-function wire() {
-  tabs.forEach((tab) =>
-    tab.addEventListener('click', () => {
-      const target = tab.dataset.tab;
-      tabs.forEach((b) => b.classList.toggle('active', b === tab));
-      panels.forEach((p) => p.classList.toggle('active', p.dataset.panel === target));
-    })
-  );
+async function runSearch() {
+  const q = el.searchInput.value.trim();
+  const qNorm = normalizeName(q);
+  if (!qNorm) return;
 
-  navButtons.forEach((btn) =>
-    btn.addEventListener('click', () => navButtons.forEach((b) => b.classList.toggle('active', b === btn)))
-  );
+  el.searchResults.innerHTML = '<p class="foot-note">Searching local + IPSC results…</p>';
+
+  const matchHits = state.matches.filter((m) => normalizeName(m.name).includes(qNorm));
+  const shooterHits = state.matches.flatMap((m) => m.shooters.filter((s) => normalizeName(s).includes(qNorm)).map((s) => ({ shooter: s, match: m })));
+
+  const rows = [];
+  matchHits.forEach((m) => rows.push(`<button class="result-btn" data-match="${m.id}">📋 ${m.name} <span>${m.provider}</span></button>`));
+  shooterHits.forEach((x) => rows.push(`<button class="result-btn" data-match="${x.match.id}">🎯 ${x.shooter} <span>${x.match.name}</span></button>`));
+
+  try {
+    const ipscIndex = await loadIpscIndex();
+    const ipscTitleHits = ipscIndex.filter((x) => normalizeName(x.title).includes(qNorm));
+    const ipscCompetitorHits = await searchIpscByCompetitor(qNorm, ipscIndex);
+
+    const map = new Map();
+    [...ipscTitleHits, ...ipscCompetitorHits].forEach((x) => map.set(x.url, x));
+
+    [...map.values()].slice(0, 12).forEach((x) => {
+      rows.push(`<a class="result-btn" href="${x.url}" target="_blank" rel="noopener noreferrer">🌐 ${x.title} <span>IPSC</span></a>`);
+    });
+  } catch {
+    rows.push('<p class="foot-note">IPSC live search unavailable right now; showing local cached results.</p>');
+  }
+
+  renderSearchRows(rows);
+}
+
+function wire() {
+  tabs.forEach((tab) => tab.addEventListener('click', () => {
+    const target = tab.dataset.tab;
+    tabs.forEach((b) => b.classList.toggle('active', b === tab));
+    panels.forEach((p) => p.classList.toggle('active', p.dataset.panel === target));
+  }));
+
+  navButtons.forEach((btn) => btn.addEventListener('click', () => navButtons.forEach((b) => b.classList.toggle('active', b === btn))));
 
   el.searchBtn.addEventListener('click', runSearch);
   el.searchInput.addEventListener('keydown', (e) => e.key === 'Enter' && runSearch());

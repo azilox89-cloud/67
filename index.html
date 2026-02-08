@@ -22,17 +22,27 @@
       </header>
 
       <section class="search-card card">
-        <p class="eyebrow">Results Search (Match + Competitor)</p>
+        <p class="eyebrow">Results Access & Sync</p>
         <div class="search-row">
-          <input id="searchInput" type="text" placeholder="Search match or shooter name" aria-label="Search" />
+          <input id="searchInput" type="text" placeholder="Search match or competitor name" aria-label="Search" />
           <button id="searchBtn" class="primary">Search</button>
         </div>
         <div class="chip-row">
-          <span class="chip live" id="syncChip">Sync active</span>
-          <span class="chip" id="providerChip">Providers: Local</span>
+          <span class="chip live" id="syncChip">Wi‑Fi sync idle</span>
+          <span class="chip" id="providerChip">Providers: PractiScore · IPSC · USPSA</span>
+        </div>
+        <div class="chip-row">
+          <button class="chip-button active" data-source="all">All</button>
+          <button class="chip-button" data-source="practiscore">PractiScore</button>
+          <button class="chip-button" data-source="ipsc">IPSC</button>
+          <button class="chip-button" data-source="uspsa">USPSA</button>
         </div>
         <div id="searchResults" class="search-results"></div>
-        <button id="downloadBtn" class="ghost full">Download current match for offline use</button>
+        <div class="two-col actions">
+          <button id="syncBtn" class="ghost">Sync over Wi‑Fi</button>
+          <button id="downloadBtn" class="ghost">Offline download</button>
+        </div>
+        <div id="offlineHistory" class="foot-note"></div>
       </section>
 
       <section class="quick-stats card" id="matchHeader"></section>
@@ -41,29 +51,66 @@
         <button class="tab active" data-tab="stages">Stages</button>
         <button class="tab" data-tab="compare">Compare</button>
         <button class="tab" data-tab="classify">Classify</button>
-        <button class="tab" data-tab="whatif">What-If</button>
+        <button class="tab" data-tab="whatif">What‑If</button>
       </section>
 
       <section class="tab-panel active card" data-panel="stages">
-        <div class="section-head"><h3>Stage breakdown</h3><button id="timerBtn" class="ghost">Timer data</button></div>
+        <div class="section-head">
+          <h3>Stage analysis</h3>
+          <button id="timerBtn" class="ghost">Bluetooth timer</button>
+        </div>
+        <div class="chip-row">
+          <button class="chip-button active" data-viewmode="highAvailable">High Available</button>
+          <button class="chip-button" data-viewmode="timeOnly">Time Only</button>
+          <button class="chip-button" data-viewmode="highPeak">High Peak</button>
+        </div>
         <ul class="stage-list" id="stageList"></ul>
+        <div id="stageCharts" class="chart-grid"></div>
         <div class="two-col" id="stageMetrics"></div>
+        <div id="videoPanel" class="video-panel"></div>
       </section>
 
       <section class="tab-panel card" data-panel="compare">
-        <div class="section-head"><h3>Side-by-side</h3><button id="addCompareBtn" class="ghost">Add top rival</button></div>
+        <div class="section-head">
+          <h3>Competitor compare</h3>
+          <button id="addCompareBtn" class="ghost">Add top rival</button>
+        </div>
+        <div class="two-col actions">
+          <button id="combineDivBtn" class="ghost">Combine selected divisions</button>
+          <button id="toggleFiltersBtn" class="ghost">Advanced filters</button>
+        </div>
+        <div id="advancedFilters" class="filters hidden">
+          <label>Min stage % <input id="minStagePct" type="number" value="0" min="0" max="100" /></label>
+          <label>Include DQ <input id="includeDQ" type="checkbox" /></label>
+          <button id="applyFiltersBtn" class="primary full">Apply filters</button>
+        </div>
         <div class="compare-stack" id="compareStack"></div>
+        <div id="combinedDivisionResult" class="sim-result"></div>
       </section>
 
       <section class="tab-panel card" data-panel="classify">
-        <h3>Classification tracking</h3>
+        <h3>Classification + history</h3>
         <ul class="plain-list" id="classificationList"></ul>
-        <p class="foot-note">Supports USPSA, IPSC, IDPA, Steel Challenge, ICORE, PRS, ProAm, NRA, and 3-Gun.</p>
+        <ul class="plain-list" id="classificationHistory"></ul>
       </section>
 
       <section class="tab-panel card" data-panel="whatif">
-        <h3>What-if simulator</h3>
-        <label>Misses on selected stage<input id="whatIfMiss" type="number" value="0" min="0" /></label>
+        <h3>What‑If scoring editor</h3>
+        <label>Division
+          <select id="whatIfDivision">
+            <option value="CO">CO</option>
+            <option value="Production">Production</option>
+            <option value="Open">Open</option>
+          </select>
+        </label>
+        <label>Power factor
+          <select id="whatIfPF">
+            <option value="minor">Minor</option>
+            <option value="major">Major</option>
+          </select>
+        </label>
+        <label>Misses<input id="whatIfMiss" type="number" value="0" min="0" /></label>
+        <label>Hits adjusted<input id="whatIfHits" type="number" value="0" /></label>
         <label>Procedurals<input id="whatIfProc" type="number" value="0" min="0" /></label>
         <label>Time change (sec)<input id="whatIfTime" type="number" value="0" step="0.1" /></label>
         <button id="simulateBtn" class="primary full">Run simulation</button>

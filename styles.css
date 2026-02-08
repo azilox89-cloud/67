@@ -274,3 +274,53 @@ label {
   .phone-app { width: min(760px, 96vw); }
   .tabs { max-width: 480px; }
 }
+
+
+.chip-button {
+  background: rgba(147, 170, 240, 0.14);
+  border: 1px solid rgba(147, 170, 240, 0.3);
+  color: var(--muted);
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+}
+.chip-button.active {
+  color: var(--text);
+  border-color: rgba(116, 163, 255, 0.8);
+  background: rgba(116, 163, 255, 0.25);
+}
+.actions { margin-top: 0.5rem; }
+.filters { margin-top: 0.6rem; }
+.hidden { display: none !important; }
+
+.chart-grid {
+  margin-top: 0.55rem;
+  display: grid;
+  gap: 0.45rem;
+}
+.chart-grid article {
+  background: rgba(11, 19, 40, 0.6);
+  border-radius: 0.7rem;
+  padding: 0.5rem;
+}
+.bar {
+  margin: 0.35rem 0;
+  height: 0.48rem;
+  border-radius: 999px;
+  background: rgba(147, 170, 240, 0.2);
+}
+.bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #7dd9ff, #7f74ff);
+}
+.video-panel { margin-top: 0.6rem; display: grid; gap: 0.45rem; }
+select {
+  width: 100%;
+  border: 1px solid rgba(150, 173, 242, 0.4);
+  border-radius: 0.7rem;
+  padding: 0.58rem 0.65rem;
+  background: #0f1b39;
+  color: var(--text);
+}

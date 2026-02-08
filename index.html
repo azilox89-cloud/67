@@ -24,7 +24,7 @@
       <section class="search-card card">
         <p class="eyebrow">Results Access & Sync</p>
         <div class="search-row">
-          <input id="searchInput" type="text" placeholder="Search match or competitor name" aria-label="Search" />
+          <input id="searchInput" type="text" placeholder="Search or paste direct result link" aria-label="Search" />
           <button id="searchBtn" class="primary">Search</button>
         </div>
         <div class="chip-row">
@@ -36,6 +36,13 @@
           <button class="chip-button" data-source="practiscore">PractiScore</button>
           <button class="chip-button" data-source="ipsc">IPSC</button>
           <button class="chip-button" data-source="uspsa">USPSA</button>
+        </div>
+
+        <div class="chip-row">
+          <button class="chip-button active" data-searchmode="match">Match Name</button>
+          <button class="chip-button" data-searchmode="competitor">Competitor Name</button>
+          <button class="chip-button" data-searchmode="email">Competitor Email</button>
+          <button class="chip-button" data-searchmode="member">Member #</button>
         </div>
         <div id="searchResults" class="search-results"></div>
         <div class="two-col actions">

@@ -14,6 +14,8 @@ When complete, your APK will be at:
 - `release/MatchFlowMobile-debug.apk`
 - `releases/MatchFlowMobile-debug.apk`
 
+If build fails before Gradle finishes, the folders may still exist without an APK file inside yet.
+
 ## Install on your phone
 1. Copy `release/MatchFlowMobile-debug.apk` (or `releases/MatchFlowMobile-debug.apk`) to your Android phone.
 2. Open it and allow installation from this source (if prompted).

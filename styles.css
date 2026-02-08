@@ -141,8 +141,38 @@ input {
   background: rgba(116, 163, 255, 0.2);
 }
 
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
+
+
+.search-results { margin-top: 0.6rem; display: grid; gap: 0.4rem; }
+.result-btn {
+  width: 100%;
+  text-align: left;
+  background: rgba(11, 19, 40, 0.65);
+  border: 1px solid rgba(149, 173, 243, 0.2);
+  border-radius: 0.65rem;
+  padding: 0.55rem;
+  color: var(--text);
+}
+.result-btn span { color: var(--muted); font-size: 0.75rem; float: right; }
+
+button { cursor: pointer; transition: transform 180ms ease, background-color 220ms ease, border-color 220ms ease, opacity 220ms ease; }
+button:active { transform: scale(0.98); }
+
+.tab-panel {
+  display: block;
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 260ms ease, transform 260ms ease, max-height 260ms ease;
+}
+.tab-panel.active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  max-height: 1000px;
+}
 
 .section-head {
   display: flex;

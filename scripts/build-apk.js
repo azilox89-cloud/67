@@ -6,10 +6,60 @@ const rootDir = path.resolve(__dirname, '..');
 const androidDir = path.join(rootDir, 'android');
 const wrapperJar = path.join(androidDir, 'gradle', 'wrapper', 'gradle-wrapper.jar');
 const gradleWrapperUrl = 'https://raw.githubusercontent.com/gradle/gradle/v8.14.3/gradle/wrapper/gradle-wrapper.jar';
-const sdkDir = process.env.ANDROID_SDK_ROOT || process.env.ANDROID_HOME || '/usr/lib/android-sdk';
-
 const releaseDir = path.join(rootDir, 'release');
 const releasesDir = path.join(rootDir, 'releases');
+
+function escapeLocalPropertiesPath(p) {
+  return p.replace(/\\/g, '\\\\').replace(/:/g, '\\:');
+}
+
+function resolveSdkDir() {
+  const candidates = [];
+
+  if (process.env.ANDROID_SDK_ROOT) candidates.push(process.env.ANDROID_SDK_ROOT);
+  if (process.env.ANDROID_HOME) candidates.push(process.env.ANDROID_HOME);
+
+  if (process.platform === 'win32') {
+    if (process.env.LOCALAPPDATA) candidates.push(path.join(process.env.LOCALAPPDATA, 'Android', 'Sdk'));
+    if (process.env.USERPROFILE) candidates.push(path.join(process.env.USERPROFILE, 'AppData', 'Local', 'Android', 'Sdk'));
+  } else {
+    if (process.env.HOME) candidates.push(path.join(process.env.HOME, 'Android', 'Sdk'));
+    candidates.push('/usr/lib/android-sdk');
+  }
+
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    if (fs.existsSync(path.join(candidate, 'platform-tools'))) return candidate;
+  }
+
+  return null;
+}
+
+function ensureAndroidSdkConfigured() {
+  const sdk = resolveSdkDir();
+  if (!sdk) {
+    throw new Error(
+      process.platform === 'win32'
+        ? [
+            'Android SDK not found.',
+            'Install Android Studio and SDK Platform + Platform-Tools, then set one of:',
+            '  setx ANDROID_SDK_ROOT "%LOCALAPPDATA%\\Android\\Sdk"',
+            '  setx ANDROID_HOME "%LOCALAPPDATA%\\Android\\Sdk"',
+            'Then reopen PowerShell and rerun: npm run apk:build',
+          ].join('\n')
+        : [
+            'Android SDK not found.',
+            'Set ANDROID_SDK_ROOT (or ANDROID_HOME) to your SDK path and ensure platform-tools is installed.',
+          ].join('\n')
+    );
+  }
+
+  fs.writeFileSync(
+    path.join(androidDir, 'local.properties'),
+    `sdk.dir=${escapeLocalPropertiesPath(sdk)}\n`,
+    'utf8'
+  );
+}
 
 function run(command, opts = {}) {
   execSync(command, {
@@ -91,9 +141,7 @@ function main() {
     downloadWrapperJar(wrapperJar);
   }
 
-  if (fs.existsSync(sdkDir)) {
-    fs.writeFileSync(path.join(androidDir, 'local.properties'), `sdk.dir=${sdkDir}\n`, 'utf8');
-  }
+  ensureAndroidSdkConfigured();
 
   const env = { ...process.env };
   run(process.platform === 'win32' ? 'gradlew.bat assembleDebug' : './gradlew assembleDebug', { cwd: androidDir, env });

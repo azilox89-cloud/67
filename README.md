@@ -31,4 +31,8 @@ If build fails before Gradle finishes, the folders may still exist without an AP
 ## Troubleshooting
 - If you see `JAVA_HOME is not set` or `java command could not be found`, install **JDK 21**, reopen PowerShell, and set `JAVA_HOME` to your JDK path.
 - If `release/` and `releases/` are present but empty, Gradle did not finish successfully yet, so no APK was produced. Read the first error in the terminal output and fix it, then run `npm run apk:build` again.
+- If you see `SDK location not found`, install Android SDK Platform + Platform-Tools and set:
+  - `setx ANDROID_SDK_ROOT "%LOCALAPPDATA%\Android\Sdk"`
+  - `setx ANDROID_HOME "%LOCALAPPDATA%\Android\Sdk"`
+  Then reopen PowerShell and rerun the build.
 - Use `npm run apk:path` to quickly confirm where the APK was written.

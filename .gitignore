@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+
+# Native generated binaries/assets
+android/gradle/wrapper/gradle-wrapper.jar
+android/app/src/main/res/**/*.png
+ios/App/App/Assets.xcassets/**/*.png

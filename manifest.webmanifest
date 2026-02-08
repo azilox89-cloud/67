@@ -1,0 +1,17 @@
+{
+  "name": "MatchFlow Mobile",
+  "short_name": "MatchFlow",
+  "description": "Modern mobile competitor app for live shooting match results and analytics.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0b1228",
+  "theme_color": "#101a36",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='38' fill='%23162a59'/%3E%3Ctext x='50%25' y='54%25' fill='%23eef4ff' font-size='72' font-family='Arial' text-anchor='middle'%3EMF%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

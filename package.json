@@ -1,0 +1,31 @@
+{
+  "name": "matchflow-mobile",
+  "version": "1.0.0",
+  "description": "MatchFlow Mobile app packaged with Capacitor",
+  "main": "app.js",
+  "scripts": {
+    "build:web": "node scripts/build-web.js",
+    "cap:sync": "npm run build:web && npx cap sync",
+    "cap:add:android": "npm run build:web && npx cap add android",
+    "cap:add:ios": "npm run build:web && npx cap add ios",
+    "android:open": "npx cap open android",
+    "ios:open": "npx cap open ios",
+    "release:summary": "node scripts/release-summary.js",
+    "release:android:aab": "cd android && ./gradlew bundleRelease",
+    "release:android:apk": "cd android && ./gradlew assembleRelease",
+    "release:ios:archive": "xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Release -destination generic/platform=iOS archive -archivePath ios/App/build/App.xcarchive",
+    "apk:build": "bash scripts/build-apk.sh",
+    "apk:path": "ls -lh release/MatchFlowMobile-debug.apk"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@capacitor/android": "^8.0.2",
+    "@capacitor/cli": "^8.0.2",
+    "@capacitor/core": "^8.0.2",
+    "@capacitor/ios": "^8.0.2"
+  },
+  "private": true
+}

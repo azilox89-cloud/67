@@ -1,0 +1,9 @@
+{
+  "appId": "com.matchflow.mobile",
+  "appName": "MatchFlow Mobile",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}

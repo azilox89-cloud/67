@@ -14,8 +14,8 @@
     "release:android:aab": "cd android && ./gradlew bundleRelease",
     "release:android:apk": "cd android && ./gradlew assembleRelease",
     "release:ios:archive": "xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Release -destination generic/platform=iOS archive -archivePath ios/App/build/App.xcarchive",
-    "apk:build": "bash scripts/build-apk.sh",
-    "apk:path": "ls -lh release/MatchFlowMobile-debug.apk"
+    "apk:build": "node scripts/build-apk.js",
+    "apk:path": "node -e \"const fs=require('fs');const p='release/MatchFlowMobile-debug.apk';if(!fs.existsSync(p)){console.error('APK not found at '+p);process.exit(1);}const s=fs.statSync(p);console.log(p+' ('+(s.size/1024/1024).toFixed(2)+' MB)');\""
   },
   "keywords": [],
   "author": "",

@@ -8,6 +8,8 @@ npm install
 npm run apk:build
 ```
 
+> Windows PowerShell is supported. `apk:build` now runs a Node.js script (no Bash requirement).
+
 When complete, your APK will be at:
 - `release/MatchFlowMobile-debug.apk`
 
@@ -18,6 +20,6 @@ When complete, your APK will be at:
 
 ## Notes
 - This builds a **debug APK** for easy sideloading.
-- If your machine is missing Android SDK/JDK, install:
-  - Android SDK (set `ANDROID_SDK_ROOT` if not in default location)
-  - JDK 21
+- Required build tools:
+  - Android SDK (`ANDROID_SDK_ROOT` or `ANDROID_HOME` should point to it)
+  - JDK 21 (recommended for Gradle/Android plugin compatibility)

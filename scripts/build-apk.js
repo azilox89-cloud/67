@@ -28,6 +28,39 @@ function tryRun(command, opts = {}) {
   }
 }
 
+function checkJavaAvailable() {
+  const hasJavaHome = !!process.env.JAVA_HOME;
+  const javaHomeBin = hasJavaHome
+    ? path.join(process.env.JAVA_HOME, 'bin', process.platform === 'win32' ? 'java.exe' : 'java')
+    : null;
+
+  if (hasJavaHome && !fs.existsSync(javaHomeBin)) {
+    throw new Error(`JAVA_HOME is set but invalid: ${process.env.JAVA_HOME}`);
+  }
+
+  try {
+    execSync('java -version', {
+      stdio: 'ignore',
+      shell: process.platform === 'win32' ? 'cmd.exe' : '/bin/bash',
+    });
+  } catch {
+    throw new Error(
+      process.platform === 'win32'
+        ? [
+            'Java is required to build the APK but was not found.',
+            'Install JDK 21 and reopen PowerShell.',
+            'Then set JAVA_HOME, for example:',
+            '  setx JAVA_HOME "C:\\Program Files\\Java\\jdk-21"',
+            '  setx PATH "%JAVA_HOME%\\bin;%PATH%"',
+          ].join('\n')
+        : [
+            'Java is required to build the APK but was not found.',
+            'Install JDK 21 and ensure `java` is in PATH (or set JAVA_HOME).',
+          ].join('\n')
+    );
+  }
+}
+
 function downloadWrapperJar(destination) {
   fs.mkdirSync(path.dirname(destination), { recursive: true });
 
@@ -45,9 +78,11 @@ function downloadWrapperJar(destination) {
 function main() {
   process.chdir(rootDir);
 
-  // Create output folders early so users can find them even if build fails later.
+  // Create output folders early so users can find them.
   fs.mkdirSync(releaseDir, { recursive: true });
   fs.mkdirSync(releasesDir, { recursive: true });
+
+  checkJavaAvailable();
 
   run('npm run cap:sync');
 
@@ -64,6 +99,10 @@ function main() {
   run(process.platform === 'win32' ? 'gradlew.bat assembleDebug' : './gradlew assembleDebug', { cwd: androidDir, env });
 
   const apkSrc = path.join(androidDir, 'app', 'build', 'outputs', 'apk', 'debug', 'app-debug.apk');
+  if (!fs.existsSync(apkSrc)) {
+    throw new Error(`Build completed but APK not found at expected path: ${apkSrc}`);
+  }
+
   const releaseApk = path.join(releaseDir, 'MatchFlowMobile-debug.apk');
   const releasesApk = path.join(releasesDir, 'MatchFlowMobile-debug.apk');
 

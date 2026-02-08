@@ -8,14 +8,21 @@ const wrapperJar = path.join(androidDir, 'gradle', 'wrapper', 'gradle-wrapper.ja
 const gradleWrapperUrl = 'https://raw.githubusercontent.com/gradle/gradle/v8.14.3/gradle/wrapper/gradle-wrapper.jar';
 const sdkDir = process.env.ANDROID_SDK_ROOT || process.env.ANDROID_HOME || '/usr/lib/android-sdk';
 
+function executableFor(command) {
+  if (process.platform === 'win32' && command === 'npm') {
+    return 'npm.cmd';
+  }
+  return command;
+}
+
 function run(command, args, opts = {}) {
-  const result = spawnSync(command, args, { stdio: 'inherit', shell: false, ...opts });
+  const result = spawnSync(executableFor(command), args, { stdio: 'inherit', shell: false, ...opts });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`${command} ${args.join(' ')} failed with exit code ${result.status}`);
 }
 
 function tryRun(command, args, opts = {}) {
-  const result = spawnSync(command, args, { stdio: 'inherit', shell: false, ...opts });
+  const result = spawnSync(executableFor(command), args, { stdio: 'inherit', shell: false, ...opts });
   return !result.error && result.status === 0;
 }
 
@@ -51,12 +58,19 @@ function main() {
   run(process.platform === 'win32' ? 'gradlew.bat' : './gradlew', ['assembleDebug'], { cwd: androidDir, env });
 
   const apkSrc = path.join(androidDir, 'app', 'build', 'outputs', 'apk', 'debug', 'app-debug.apk');
-  const outDir = path.join(rootDir, 'release');
-  const apkOut = path.join(outDir, 'MatchFlowMobile-debug.apk');
-  fs.mkdirSync(outDir, { recursive: true });
-  fs.copyFileSync(apkSrc, apkOut);
 
-  console.log(`APK ready: ${apkOut}`);
+  const releaseDir = path.join(rootDir, 'release');
+  const releaseApk = path.join(releaseDir, 'MatchFlowMobile-debug.apk');
+  fs.mkdirSync(releaseDir, { recursive: true });
+  fs.copyFileSync(apkSrc, releaseApk);
+
+  const releasesDir = path.join(rootDir, 'releases');
+  const releasesApk = path.join(releasesDir, 'MatchFlowMobile-debug.apk');
+  fs.mkdirSync(releasesDir, { recursive: true });
+  fs.copyFileSync(apkSrc, releasesApk);
+
+  console.log(`APK ready: ${releaseApk}`);
+  console.log(`APK mirror: ${releasesApk}`);
 }
 
 try {
